@@ -17,6 +17,7 @@ const axiosConfig = {
     data: {}
 };
 function activate(context) {
+    var arraySnippets = [];
     fs.readFile(configFile, 'utf8', (err, data) => {
         if (err) {
             vscode.window.showErrorMessage('101OBeX Developer Token was not found. ' +
@@ -41,25 +42,51 @@ function activate(context) {
                     // a completion item that can be accepted by a commit character,
                     // the `commitCharacters`-property is set which means that the completion will
                     // be inserted and then the character will be typed.
-                    const commitCharacterCompletion = new vscode.CompletionItem('console');
+                    const commitCharacterCompletion = new vscode.CompletionItem('request');
                     commitCharacterCompletion.commitCharacters = ['.'];
-                    commitCharacterCompletion.documentation = new vscode.MarkdownString('Press `.` to get `console.`');
+                    commitCharacterCompletion.documentation = new vscode.MarkdownString('Press `.` to get `request.`');
                     // a completion item that retriggers IntelliSense when being accepted,
                     // the `command`-property is set which the editor will execute after 
                     // completion has been inserted. Also, the `insertText` is set so that 
                     // a space is inserted after `new`
-                    const commandCompletion = new vscode.CompletionItem('new');
+                    const commandCompletion = new vscode.CompletionItem('request.get');
                     commandCompletion.kind = vscode.CompletionItemKind.Keyword;
-                    commandCompletion.insertText = 'new ';
+                    commandCompletion.insertText = 'request.get(\"http://101obex.com:8000 ';
                     commandCompletion.command = { command: 'editor.action.triggerSuggest', title: 'Re-trigger completions...' };
+                    const commandCompletion2 = new vscode.CompletionItem('request.post');
+                    commandCompletion2.kind = vscode.CompletionItemKind.Keyword;
+                    commandCompletion2.insertText = 'request.post(\"http://101obex.com:8000 ';
+                    commandCompletion2.command = { command: 'editor.action.triggerSuggest', title: 'Re-trigger completions...' };
                     // return all completion items as array
                     var resultado = [
                         snippetCompletion,
                         commitCharacterCompletion,
+                        commandCompletion2,
                         commandCompletion
                     ];
                     response.data.data[0].services.forEach((subelement) => {
-                        resultado.push(new vscode.CompletionItem(subelement.description));
+                        if (subelement.parameters != undefined) {
+                            var snippetCompletionArray = new vscode.CompletionItem(`${subelement.description}`);
+                            var arr = subelement.parameters.replace("[", "").replace("]", "").replace(/\'/g, "");
+                            var objArray = arr.split(",");
+                            var parametrosCadena = "/";
+                            var posicion = 1;
+                            objArray.forEach((parametro) => {
+                                if (posicion == 1) {
+                                    parametrosCadena = parametrosCadena + '?';
+                                }
+                                else {
+                                    parametrosCadena = parametrosCadena + '&';
+                                }
+                                parametrosCadena = parametrosCadena + `${parametro}=` + '${' + posicion + '}';
+                                posicion++;
+                            });
+                            snippetCompletionArray.insertText = new vscode.SnippetString(`${subelement.description}` + parametrosCadena + '\")');
+                            resultado.push(snippetCompletionArray);
+                        }
+                        else {
+                            resultado.push(new vscode.CompletionItem(subelement.description));
+                        }
                     });
                     return resultado;
                 }
@@ -75,18 +102,18 @@ function activate(context) {
             }
         });
     });
-    const provider2 = vscode.languages.registerCompletionItemProvider('plaintext', {
+    const provider2 = vscode.languages.registerCompletionItemProvider('python', {
         provideCompletionItems(document, position) {
             // get all text until the `position` and check if it reads `console.`
             // and if so then complete if `log`, `warn`, and `error`
             const linePrefix = document.lineAt(position).text.substr(0, position.character);
-            if (!linePrefix.endsWith('console.')) {
+            if (!linePrefix.endsWith('request.')) {
                 return undefined;
             }
             return [
-                new vscode.CompletionItem('log', vscode.CompletionItemKind.Method),
-                new vscode.CompletionItem('warn', vscode.CompletionItemKind.Method),
-                new vscode.CompletionItem('error', vscode.CompletionItemKind.Method),
+                new vscode.CompletionItem('get', vscode.CompletionItemKind.Method),
+                new vscode.CompletionItem('post', vscode.CompletionItemKind.Method),
+                new vscode.CompletionItem('delete', vscode.CompletionItemKind.Method),
             ];
         }
     }, '.' // triggered whenever a '.' is being typed
