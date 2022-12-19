@@ -1,7 +1,7 @@
 {
 	"name": "101OBeX-API-Completion",
 	"displayName": "101OBeX API Completion",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"publisher": "101OBeX Corp",
 	"private": true,
 	"license": "MIT",
@@ -15,8 +15,9 @@
 	"categories": [
 		"Other"
 	],
+	"icon": "images/101icon.png",
 	"activationEvents": [
-		"*"
+	  "onStartupFinished"
 	],
 	"main": "./out/extension.js",
 	"scripts": {

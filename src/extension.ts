@@ -83,13 +83,11 @@ export function activate(context: vscode.ExtensionContext) {
 						];
 			
 						response.data.data[0].services.forEach((subelement: any) => {
-							var headers = response.data.data[0].authorizations[0].token;
+							//var headers = response.data.data[0].authorizations[0].token;
 							const linePrefix = document.lineAt(position).text.substr(0, position.character);
 							
-
-							
 							if (subelement.parameters != undefined){
-
+								var dataObject = getCurrentProject();
 								var snippetCompletionArray = new vscode.CompletionItem(`${subelement.description}`);
 								var arr = subelement.parameters.replace("[","").replace("]","").replace(/\'/g,"");
 								var objArray = arr.split(",");
@@ -98,23 +96,35 @@ export function activate(context: vscode.ExtensionContext) {
 								if (linePrefix.toString().includes(".get")){
 								objArray.forEach((parametro: any) => {
 									if (posicion==1) {parametrosCadena= parametrosCadena+'?';} else {parametrosCadena = parametrosCadena+'&';}
-									parametrosCadena = parametrosCadena+`${parametro}=`+'${'+posicion+'}';
+									
+									if (parametro=='codigo_pais')
+									{
+										parametrosCadena = parametrosCadena+`${parametro}=${dataObject.country_code}`+'${'+posicion+'}';
+									} else 
+									{
+										parametrosCadena = parametrosCadena+`${parametro}=`+'${'+posicion+'}';
+									}
 									posicion++;
 								})
-								snippetCompletionArray.insertText = new vscode.SnippetString(`\n\t\turl = \"http://api.101obex.com:8000${subelement.description}`+parametrosCadena+'\",\n\t\t'+`headers = {\n\t\t\t\"101ObexToken\": \"${headers}\"\n\t\t}\n)`);
+								snippetCompletionArray.insertText = new vscode.SnippetString(`\n\t\turl = \"http://api.101obex.com:8000${subelement.description}`+parametrosCadena+'\",\n\t\t'+`headers = {\n\t\t\t\"101ObexToken\": \"${dataObject.selected_project}\"\n\t\t}\n)`);
 							} else {
 
 								parametrosCadena = "";
 								objArray.forEach((parametro: any) => {
-									
-									parametrosCadena = parametrosCadena+`\"${parametro}\" : \"`+'${'+posicion+'}\",'+'\n\t\t\t';
+									if (parametro=='codigo_pais')
+									{
+										parametrosCadena = parametrosCadena+`\"${parametro}\" : \"${dataObject.country_code}`+'${'+posicion+'}\",'+'\n\t\t\t';
+									}
+									else{
+										parametrosCadena = parametrosCadena+`\"${parametro}\" : \"`+'${'+posicion+'}\",'+'\n\t\t\t';
+									}
 									posicion++;
 								})
 
 
 								snippetCompletionArray.insertText = new vscode.SnippetString(`\n\t\turl = \"http://api.101obex.com:8000${subelement.description}\",`+
 																							`\n\t\tdata = {\n\t\t\t${parametrosCadena}}`+
-																								',\n\t\t'+`headers = {\n\t\t\t\"101ObexToken\": \"${headers}\"\n\t\t}\n)`);
+																								',\n\t\t'+`headers = {\n\t\t\t\"101ObexToken\": \"${dataObject.selected_project}\"\n\t\t}\n)`);
 
 							}
 								resultado.push(snippetCompletionArray);
@@ -147,6 +157,14 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	
 	);
+
+
+	function getCurrentProject(){
+
+		var rawdata = fs.readFileSync(os.homedir+'/.101obex/selectedproject.json');
+		var objectdata = JSON.parse(rawdata.toString());
+		return objectdata
+	}
 
 	/*
 
