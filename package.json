@@ -1,13 +1,13 @@
 {
 	"name": "101OBeX-API-Completion",
 	"displayName": "101OBeX API Completion",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"publisher": "101OBeX Corp",
 	"private": true,
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Microsoft/vscode-extension-samples"
+		"url": "https://github.com/101OBeXCorp/101obex-api-completion.git"
 	},
 	"engines": {
 		"vscode": "^1.32.0"
